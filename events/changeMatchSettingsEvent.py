@@ -64,7 +64,7 @@ def handle(userToken, packetData):
 			match.matchPassword = ""
 		match.beatmapName = packetData["beatmapName"]
 		match.beatmapID = packetData["beatmapID"]
-		match.hostUserID = packetData["hostUserID"]
+		#match.hostUserID = packetData["hostUserID"]
 		match.gameMode = packetData["gameMode"]
 
 		oldBeatmapMD5 = match.beatmapMD5
