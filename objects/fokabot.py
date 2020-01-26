@@ -48,8 +48,9 @@ def fokabotResponse(fro, chan, message):
 
 			# Make sure the user has right permissions
 			if i["privileges"] is not None:
-				# Rank = x
-				if userUtils.getPrivileges(userUtils.getID(fro)) & i["privileges"] == 0:
+				refers = glob.matches.matches[matchID].refers
+				userId = userUtils.getID(fro)
+				if (userUtils.getPrivileges(userUtils.getID(fro)) & i["privileges"] == 0) | (userId in refers):
 					return False
 
 			# Check argument number
