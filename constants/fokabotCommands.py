@@ -1361,6 +1361,7 @@ def multiplayer(fro, chan, message):
 			raise exceptions.userNotFoundException("No such user")
 		_match.addRefer(userID)
 		return "added {} to refers".format(username)
+
 	def mpRemoveRefer():
 		if len(message) < 2:
 			raise exceptions.invalidArgumentsException("Wrong syntax: !mp addref <user>")
@@ -1373,6 +1374,7 @@ def multiplayer(fro, chan, message):
 			raise exceptions.userNotFoundException("No such user")
 		_match.removeRefer(userID)
 		return "removed {} from refers".format(username)
+		
 	def mpMake():
 		if len(message) < 2:
 			raise exceptions.invalidArgumentsException("Wrong syntax: !mp make <name>")
