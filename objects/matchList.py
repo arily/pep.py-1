@@ -110,3 +110,13 @@ class matchList:
 		finally:
 			# Schedule a new check (endless loop)
 			threading.Timer(30, self.cleanupLoop).start()
+	def matchExists(matchId):
+		return matchId in self.matches
+
+	def getMatchByID(matchId):
+		log.debug("call: getMatchByID,id={}".format(id));
+		if matchExists(matchId):
+			return self.matches[matchId]
+
+	def getMatchFromChannel(chan):
+		return getMatchByID(glob.channels.getMatchIDFromChannel(chan))
