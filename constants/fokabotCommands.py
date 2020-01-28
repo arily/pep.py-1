@@ -469,7 +469,7 @@ def tillerinoNp(fro, chan, message):
 	try:
 		# Bloodcat trigger for #spect_
 		if chan.startswith("#spect_"):
-			spectatorHostUserID = getSpectatorHostUserIDFromChannel(chan)
+			spectatorHostUserID = glob.matches.getSpectatorHostUserIDFromChannel(chan)
 			spectatorHostToken = glob.tokens.getTokenFromUserID(spectatorHostUserID, ignoreIRC=True)
 			if spectatorHostToken is None:
 				return False
@@ -1327,37 +1327,18 @@ def recommendMap(fro, chan, message): # too lazy to finish this - 2018-12-08
 		return "Please use the correct syntax: !r <mode or * rating (will predict your main mode)>."
 	"""
 
-# Multiplayer Commands
-def getMatchIDFromChannel(chan):
-	if not chan.lower().startswith("#multi_"):
-		raise exceptions.wrongChannelException()
-	parts = chan.lower().split("_")
-	if len(parts) < 2 or not parts[1].isdigit():
-		raise exceptions.wrongChannelException()
-	matchID = int(parts[1])
-	if matchID not in glob.matches.matches:
-		raise exceptions.matchNotFoundException()
-	return matchID
 
-def getSpectatorHostUserIDFromChannel(chan):
-	if not chan.lower().startswith("#spect_"):
-		raise exceptions.wrongChannelException()
-	parts = chan.lower().split("_")
-	if len(parts) < 2 or not parts[1].isdigit():
-		raise exceptions.wrongChannelException()
-	userID = int(parts[1])
-	return userID
 
 def multiplayer(fro, chan, message):
 
 	def mpListRefer():
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		return str(_match.refers)
 
 	def mpAddRefer():
 		if len(message) < 2:
 			raise exceptions.invalidArgumentsException("Wrong syntax: !mp addref <user>")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		username = message[1].strip()
 		if not username:
 			raise exceptions.invalidArgumentsException("Please provide a username")
@@ -1370,7 +1351,7 @@ def multiplayer(fro, chan, message):
 	def mpRemoveRefer():
 		if len(message) < 2:
 			raise exceptions.invalidArgumentsException("Wrong syntax: !mp addref <user>")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		username = message[1].strip()
 		if not username:
 			raise exceptions.invalidArgumentsException("Please provide a username")
@@ -1405,25 +1386,22 @@ def multiplayer(fro, chan, message):
 		return "Attempting to join match #{}!".format(matchID)
 
 	def mpClose():
-		matchID = getMatchIDFromChannel(chan)
-		glob.matches.disposeMatch(matchID)
+		glob.channels.getMatchFromChannel(chan).disposeMatch(matchID)
 		return "Multiplayer match #{} disposed successfully".format(matchID)
 
 	def mpLock():
-		matchID = getMatchIDFromChannel(chan)
-		glob.matches.matches[matchID].isLocked = True
+		glob.channels.getMatchFromChannel(chan).isLocked = True
 		return "This match has been locked"
 
 	def mpUnlock():
-		matchID = getMatchIDFromChannel(chan)
-		glob.matches.matches[matchID].isLocked = False
+		glob.channels.getMatchFromChannel(chan).isLocked = False
 		return "This match has been unlocked"
 
 	def mpSize():
 		if len(message) < 2 or not message[1].isdigit() or int(message[1]) < 2 or int(message[1]) > 16:
 			raise exceptions.invalidArgumentsException("Wrong syntax: !mp size <slots(2-16)>")
 		matchSize = int(message[1])
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		_match.forceSize(matchSize)
 		return "Match size changed to {}".format(matchSize)
 
@@ -1435,7 +1413,7 @@ def multiplayer(fro, chan, message):
 		userID = userUtils.getIDSafe(username)
 		if userID is None:
 			raise exceptions.userNotFoundException("No such user")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		success = _match.userChangeSlot(userID, newSlotID)
 		if success:
 			result = "Player {} moved to slot {}".format(username, newSlotID)
@@ -1452,19 +1430,17 @@ def multiplayer(fro, chan, message):
 		userID = userUtils.getIDSafe(username)
 		if userID is None:
 			raise exceptions.userNotFoundException("No such user")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		success = _match.setHost(userID)
 		return "{} is now the host".format(username) if success else "Couldn't give host to {}".format(username)
 
 	def mpClearHost():
-		matchID = getMatchIDFromChannel(chan)
-		glob.matches.matches[matchID].removeHost()
+		glob.channels.getMatchFromChannel(chan).removeHost()
 		return "Host has been removed from this match"
 
 	def mpStart():
 		def _start():
-			matchID = getMatchIDFromChannel(chan)
-			success = glob.matches.matches[matchID].start()
+			glob.channels.getMatchFromChannel(chan).start()
 			if not success:
 				chat.sendMessage(glob.BOT_NAME, chan, "Couldn't start match. Make sure there are enough players and "
 												  "teams are valid. The match has been unlocked.")
@@ -1486,7 +1462,7 @@ def multiplayer(fro, chan, message):
 			startTime = int(message[1])
 
 		force = False if len(message) < 3 else message[2].lower() == "force"
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 
 		# Force everyone to ready
 		someoneNotReady = False
@@ -1522,7 +1498,7 @@ def multiplayer(fro, chan, message):
 		token = glob.tokens.getTokenFromUserID(userID, ignoreIRC=True)
 		if token is None:
 			raise exceptions.invalidUserException("That user is not connected to bancho right now.")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		_match.invite(999, userID)
 		token.enqueue(serverPackets.notification("Please accept the invite you've just received from {} to "
 												 "enter your tourney match.".format(glob.BOT_NAME)))
@@ -1540,7 +1516,7 @@ def multiplayer(fro, chan, message):
 			raise exceptions.invalidArgumentsException("The beatmap you've selected couldn't be found in the database."
 													   "If the beatmap id is valid, please load the scoreboard first in "
 													   "order to cache it, then try again.")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		_match.beatmapID = beatmapID
 		_match.beatmapName = beatmapData["song_name"]
 		_match.beatmapMD5 = beatmapData["beatmap_md5"]
@@ -1554,7 +1530,7 @@ def multiplayer(fro, chan, message):
 				(len(message) >= 3 and not message[2].isdigit()) or \
 				(len(message) >= 4 and not message[3].isdigit()):
 			raise exceptions.invalidArgumentsException("Wrong syntax: !mp set <teammode> [<scoremode>] [<size>]")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		matchTeamType = int(message[1])
 		matchScoringType = int(message[2]) if len(message) >= 3 else _match.matchScoringType
 		if not 0 <= matchTeamType <= 3:
@@ -1575,7 +1551,7 @@ def multiplayer(fro, chan, message):
 		return "Match settings have been updated!"
 
 	def mpAbort():
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		_match.abort()
 		return "Match aborted. Pussy."
 
@@ -1588,7 +1564,7 @@ def multiplayer(fro, chan, message):
 		userID = userUtils.getIDSafe(username)
 		if userID is None:
 			raise exceptions.userNotFoundException("No such user")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		slotID = _match.getUserSlotID(userID)
 		if slotID is None:
 			raise exceptions.userNotFoundException("The specified user is not in this match")
@@ -1598,20 +1574,20 @@ def multiplayer(fro, chan, message):
 
 	def mpPassword():
 		password = "" if len(message) < 2 or not message[1].strip() else message[1]
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		_match.changePassword(password)
 		return "Match password has been changed!"
 
 	def mpRandomPassword():
 		password = generalUtils.stringMd5(generalUtils.randomString(32))
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		_match.changePassword(password)
 		return "Match password has been changed to a random one."
 
 	def mpMods():
 		if len(message) < 2:
 			raise exceptions.invalidArgumentsException("Wrong syntax: !mp <mod1> [<mod2>] ...")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		newMods = 0
 		freeMod = False
 		for _mod in message[1:]:
@@ -1652,12 +1628,12 @@ def multiplayer(fro, chan, message):
 		userID = userUtils.getIDSafe(username)
 		if userID is None:
 			raise exceptions.userNotFoundException("No such user")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		_match.changeTeam(userID, matchTeams.BLUE if colour == "blue" else matchTeams.RED)
 		return "{} is now in {} team".format(username, colour)
 
 	def mpSettings():
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		single = False if len(message) < 2 else message[1].strip().lower() == "single"
 		msg = "PLAYERS IN THIS MATCH "
 		if not single:
@@ -1695,7 +1671,7 @@ def multiplayer(fro, chan, message):
 	def mpScoreV():
 		if len(message) < 2 or message[1] not in ("1", "2"):
 			raise exceptions.invalidArgumentsException("Wrong syntax: !mp scorev <1|2>")
-		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		_match = glob.channels.getMatchFromChannel(chan)
 		_match.matchScoringType = matchScoringTypes.SCORE_V2 if message[1] == "2" else matchScoringTypes.SCORE
 		_match.sendUpdates()
 		return "Match scoring type set to scorev{}".format(message[1])
@@ -1782,18 +1758,20 @@ def rtx(fro, chan, message):
 # Returns a bloodcat link for the /np in #spectator
 def bloodcat(fro, chan, message):
 	try:
-		matchID = getMatchIDFromChannel(chan)
+		match = getMatchFromChannel(chan)
+		matchID = match.matchID
 	except exceptions.wrongChannelException:
+		match = None
 		matchID = None
 	try:
-		spectatorHostUserID = getSpectatorHostUserIDFromChannel(chan)
+		spectatorHostUserID = glob.matches.getSpectatorHostUserIDFromChannel(chan)
 	except exceptions.wrongChannelException:
 		spectatorHostUserID = None
 
-	if matchID is not None:
-		if matchID not in glob.matches.matches:
-			return "This match doesn't seem to exist... Wait... Maybe it does, idk."
-		beatmapID = glob.matches.matches[matchID].beatmapID
+	if match is not None:
+		#if glob.matches.matcheExists(matchID):
+		#	return "This match doesn't seem to exist... Wait... Maybe it does, idk."
+		beatmapID = match.beatmapID
 	else:
 		spectatorHostToken = glob.tokens.getTokenFromUserID(spectatorHostUserID, ignoreIRC=True)
 		if spectatorHostToken is None:

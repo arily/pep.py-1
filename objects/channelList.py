@@ -87,3 +87,29 @@ class channelList:
 		glob.streams.remove("chat/{}".format(name))
 		self.channels.pop(name)
 		log.info("Removed channel {}".format(name))
+
+	def getMatchFromChannel(chan):
+		return glob.matches.getMatchByID(getMatchIDFromChannel(chan))
+
+	# moved from fokabot Multiplayer Commands
+	#it's more easy to use from here.
+
+	def getMatchIDFromChannel(chan):
+		if not chan.lower().startswith("#multi_"):
+			raise exceptions.wrongChannelException()
+		parts = chan.lower().split("_")
+		if len(parts) < 2 or not parts[1].isdigit():
+			raise exceptions.wrongChannelException()
+		matchID = int(parts[1])
+		if matchID not in glob.matches.matches:
+			raise exceptions.matchNotFoundException()
+		return matchID
+
+	def getSpectatorHostUserIDFromChannel(chan):
+		if not chan.lower().startswith("#spect_"):
+			raise exceptions.wrongChannelException()
+		parts = chan.lower().split("_")
+		if len(parts) < 2 or not parts[1].isdigit():
+			raise exceptions.wrongChannelException()
+		userID = int(parts[1])
+		return userID
