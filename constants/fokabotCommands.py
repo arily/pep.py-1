@@ -1349,6 +1349,37 @@ def getSpectatorHostUserIDFromChannel(chan):
 	return userID
 
 def multiplayer(fro, chan, message):
+
+	def mpListRefer():
+		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		return str(_match.refers)
+
+	def mpAddRefer():
+		if len(message) < 2:
+			raise exceptions.invalidArgumentsException("Wrong syntax: !mp addref <user>")
+		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		username = message[1].strip()
+		if not username:
+			raise exceptions.invalidArgumentsException("Please provide a username")
+		userID = userUtils.getIDSafe(username)
+		if userID is None:
+			raise exceptions.userNotFoundException("No such user")
+		_match.addRefer(userID)
+		return "added {} to refers".format(username)
+
+	def mpRemoveRefer():
+		if len(message) < 2:
+			raise exceptions.invalidArgumentsException("Wrong syntax: !mp addref <user>")
+		_match = glob.matches.matches[getMatchIDFromChannel(chan)]
+		username = message[1].strip()
+		if not username:
+			raise exceptions.invalidArgumentsException("Please provide a username")
+		userID = userUtils.getIDSafe(username)
+		if userID is None:
+			raise exceptions.userNotFoundException("No such user")
+		_match.removeRefer(userID)
+		return "removed {} from refers".format(username)
+		
 	def mpMake():
 		if len(message) < 2:
 			raise exceptions.invalidArgumentsException("Wrong syntax: !mp make <name>")
@@ -1674,6 +1705,9 @@ def multiplayer(fro, chan, message):
 
 	try:
 		subcommands = {
+			"listref": mpListRefer,
+			"addref": mpAddRefer,
+			"rmref": mpRemoveRefer,
 			"make": mpMake,
 			"close": mpClose,
 			"join": mpJoin,
