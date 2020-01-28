@@ -469,7 +469,7 @@ def tillerinoNp(fro, chan, message):
 	try:
 		# Bloodcat trigger for #spect_
 		if chan.startswith("#spect_"):
-			spectatorHostUserID = glob.matches.getSpectatorHostUserIDFromChannel(chan)
+			spectatorHostUserID = glob.channels.getSpectatorHostUserIDFromChannel(chan)
 			spectatorHostToken = glob.tokens.getTokenFromUserID(spectatorHostUserID, ignoreIRC=True)
 			if spectatorHostToken is None:
 				return False
@@ -1764,7 +1764,7 @@ def bloodcat(fro, chan, message):
 		match = None
 		matchID = None
 	try:
-		spectatorHostUserID = glob.matches.getSpectatorHostUserIDFromChannel(chan)
+		spectatorHostUserID = glob.channels.getSpectatorHostUserIDFromChannel(chan)
 	except exceptions.wrongChannelException:
 		spectatorHostUserID = None
 
