@@ -89,7 +89,8 @@ class channelList:
 		log.info("Removed channel {}".format(name))
 
 	def getMatchFromChannel(chan):
-		return glob.matches.getMatchByID(getMatchIDFromChannel(chan))
+		log.debug(f'call: getMatchFromChannel,channel={channel}')
+		return glob.matches.getMatchByID(self.getMatchIDFromChannel(chan))
 
 	# moved from fokabot Multiplayer Commands
 	#it's more easy to use from here.

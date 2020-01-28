@@ -114,9 +114,10 @@ class matchList:
 		return matchId in self.matches
 
 	def getMatchByID(matchId):
-		log.debug("call: getMatchByID,id={}".format(id));
-		if matchExists(matchId):
+		log.debug(f'call: getMatchByID,id={id}')
+		if self.matchExists(matchId):
 			return self.matches[matchId]
 
 	def getMatchFromChannel(chan):
-		return getMatchByID(glob.channels.getMatchIDFromChannel(chan))
+		log.debug(f'call: getMatchFromChannel,channel={channel}')
+		return self.getMatchByID(glob.channels.getMatchIDFromChannel(chan))
